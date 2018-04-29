@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+  "name": "AdBlocker for Gmail (new & old)",
+  "description": "Removes all annoying Ads and Banners from Gmail (also supports new Gmail UI)",
+  "version": "0.0.1",
+  "icons": {
+    "64": "icons/icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.gmail.com/*",
+        "*://mail.google.com/*"
+      ],
+      "js": [
+        "content_script.js"
+      ]
+    }
+  ]
+}
