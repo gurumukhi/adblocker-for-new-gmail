@@ -1,23 +1,36 @@
-const SCRIPT_ADDITION_ATTEMP_COUNT = 10,
-    SCRIPT_ADDITION_ATTEMP_TIMEOUT = 1000,
+const SCRIPT_ADDITION_ATTEMP_TIMEOUT = 2000,
     AD_CLEAN_ATTEMP_COUNT = 5,
-    AD_CLEAN_ATTEMP_TIMEOUT = 500,
+    AD_CLEAN_ATTEMP_TIMEOUT = 100,
     TAB_SELECTOR = 'tr.aAA.J-KU-Jg.J-KU-Jg-K9',
     AD_ROW_SELECTOR = 'img.aPe.jJBbu',
     AD_TEXT_SPAN_SELECTOR = 'span.a3x';
+
+let DEBUG_MODE_ON = false,
+    maxScriptAdditionAttempts = 10;
 
 let scriptAdditionAttemptsCount = 0;
 
 const attemptScriptAddtion = () => {
   if(addCleanAdScript()) {
-    // console.log('Gmail ad remover: Injected ad remover script successfully.');
+    if (DEBUG_MODE_ON) {
+      console.log('Gmail ad remover: Injected ad remover script successfully.');
+    }
     return;
   }
-  if(scriptAdditionAttemptsCount++ < SCRIPT_ADDITION_ATTEMP_COUNT) {
-    // console.log('Gmail ad remover: retrying adding ad remover script in '+ SCRIPT_ADDITION_ATTEMP_TIMEOUT +' ms.');
+  if(scriptAdditionAttemptsCount++ < maxScriptAdditionAttempts) {
+    if (DEBUG_MODE_ON) {
+      console.log('Gmail ad remover: retrying adding ad remover script in '+ SCRIPT_ADDITION_ATTEMP_TIMEOUT +' ms.');
+    }
     setTimeout(attemptScriptAddtion, SCRIPT_ADDITION_ATTEMP_TIMEOUT);
   } else {
-    console.warn('Gmail ad remover: Could not inject ad remover script. Kindly report it to add-on team.');
+    if (document.querySelector('#loading').style.display != 'none' &&
+        maxScriptAdditionAttempts < 100 ) {
+      maxScriptAdditionAttempts = 100;
+      console.log('Gmail ad remover: retrying adding ad remover script in '+ SCRIPT_ADDITION_ATTEMP_TIMEOUT +' ms.');
+      setTimeout(attemptScriptAddtion, SCRIPT_ADDITION_ATTEMP_TIMEOUT);
+    } else {
+      console.warn('Gmail ad remover: Could not inject ad remover script. Kindly report it to add-on team.');
+    }
   }
 };
 
@@ -35,16 +48,23 @@ const addCleanAdScript = () => {
       });
     }
   }
+  if (DEBUG_MODE_ON) {
+    console.log('Gmail ad remover: Added script.');
+  }
   return true;
 };
 
 const attempAdCleanMultipleTimes = (attemptCount, attemptTimeout) => {
   if(cleanAds() || attemptCount < 1) {
-    // console.log('NOT trying ad cleaning now');
+    if (DEBUG_MODE_ON) {
+      console.log('Gmail ad remover: NOT trying ad cleaning now');
+    }
     return;
   }
   setTimeout( () => {
-    // console.log('trying ad cleaning again');
+    if (DEBUG_MODE_ON) {
+      console.log('Gmail ad remover: Trying ad cleaning (again)');
+    }
     attempAdCleanMultipleTimes(attemptCount - 1, attemptTimeout);
   }, attemptTimeout);
 }
@@ -62,9 +82,14 @@ const cleanAds = () => {
     }
 
     if (adDiv.style.display != "none") {
-      adDiv.style.display='none';
-      // console.log('Gmail ad remover: Removed ad.');
-      // console.log(adDiv);
+      if (DEBUG_MODE_ON) {
+        console.log('Gmail ad remover: Highlighting and removing ad in 2 sec.');
+        console.log(adDiv);
+        adDiv.style.border='2px dotted red';
+        setTimeout( () => { adDiv.style.display='none'; }, 2000);
+      } else {
+        adDiv.style.display='none';
+      }
     }
     return true; // Ad removed, already removed or no ad on page at all
   }
@@ -74,5 +99,11 @@ const cleanAds = () => {
     return false;
   }
 };
+
+// Initialization
+let storageItem = browser.storage.local.get();
+storageItem.then((result) => {
+  DEBUG_MODE_ON = result.isDebugModeOn;
+});
 
 attemptScriptAddtion();
