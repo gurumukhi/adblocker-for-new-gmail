@@ -3,7 +3,7 @@ const SCRIPT_ADDITION_ATTEMP_TIMEOUT = 2000,
     AD_CLEAN_ATTEMP_TIMEOUT = 100,
     TAB_SELECTOR = 'tr.aAA.J-KU-Jg.J-KU-Jg-K9',
     AD_ROW_SELECTOR = 'img.aPe.jJBbu',
-    AD_TEXT_SPAN_SELECTOR = 'span.a3x';
+    AD_TEXT_SPAN_SELECTOR = 'span.bBw';
 
 let DEBUG_MODE_ON = false,
     maxScriptAdditionAttempts = 10;
